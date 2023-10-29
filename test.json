@@ -1,0 +1,122 @@
+[
+    2023-10-29 09: 21: 46
+] local.INFO: 測試用 {
+    "rs": {
+        "Illuminate\\Database\\Eloquent\\Collection": [
+            {
+                "id": 10,
+                "name": "群組1",
+                "parentId": 0,
+                "created_at": "2023-10-29 02:47:08",
+                "updated_at": "2023-10-29 02:47:08",
+                "skus_count": 2,
+                "skus": [
+                    {
+                        "id": 3,
+                        "name": "材料1",
+                        "json": null,
+                        "skuAttr": null,
+                        "spuId": null,
+                        "created_at": "2023-10-29 01:46:15",
+                        "updated_at": "2023-10-29 01:46:15",
+                        "pivot": {
+                            "materialGroupId": 10,
+                            "skuId": 3
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "name": "材料2",
+                        "json": null,
+                        "skuAttr": null,
+                        "spuId": null,
+                        "created_at": "2023-10-29 01:46:28",
+                        "updated_at": "2023-10-29 01:46:28",
+                        "pivot": {
+                            "materialGroupId": 10,
+                            "skuId": 4
+                        }
+                    }
+                ],
+                "children": [
+                    {
+                        "id": 14,
+                        "name": "群組4",
+                        "parentId": 10,
+                        "created_at": "2023-10-29 02:49:16",
+                        "updated_at": "2023-10-29 02:49:16",
+                        "skus": []
+                    }
+                ],
+                "parent": null
+            },
+            {
+                "id": 11,
+                "name": "群組2",
+                "parentId": 0,
+                "created_at": "2023-10-29 02:47:15",
+                "updated_at": "2023-10-29 02:47:15",
+                "skus_count": 0,
+                "skus": [],
+                "children": [],
+                "parent": null
+            },
+            {
+                "id": 12,
+                "name": "群組3",
+                "parentId": 0,
+                "created_at": "2023-10-29 02:47:22",
+                "updated_at": "2023-10-29 02:47:22",
+                "skus_count": 0,
+                "skus": [],
+                "children": [],
+                "parent": null
+            },
+            {
+                "id": 14,
+                "name": "群組4",
+                "parentId": 10,
+                "created_at": "2023-10-29 02:49:16",
+                "updated_at": "2023-10-29 02:49:16",
+                "skus_count": 0,
+                "skus": [],
+                "children": [],
+                "parent": {
+                    "id": 10,
+                    "name": "群組1",
+                    "parentId": 0,
+                    "created_at": "2023-10-29 02:47:08",
+                    "updated_at": "2023-10-29 02:47:08",
+                    "skus": [
+                        {
+                            "id": 3,
+                            "name": "材料1",
+                            "json": null,
+                            "skuAttr": null,
+                            "spuId": null,
+                            "created_at": "2023-10-29 01:46:15",
+                            "updated_at": "2023-10-29 01:46:15",
+                            "pivot": {
+                                "materialGroupId": 10,
+                                "skuId": 3
+                            }
+                        },
+                        {
+                            "id": 4,
+                            "name": "材料2",
+                            "json": null,
+                            "skuAttr": null,
+                            "spuId": null,
+                            "created_at": "2023-10-29 01:46:28",
+                            "updated_at": "2023-10-29 01:46:28",
+                            "pivot": {
+                                "materialGroupId": 10,
+                                "skuId": 4
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

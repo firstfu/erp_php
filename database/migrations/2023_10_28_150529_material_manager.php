@@ -26,13 +26,13 @@ return new class extends Migration {
         /**
          * 物料群組與物料表
          */
-        Schema::create('mGroupAndM', function (Blueprint $table) {
+        Schema::create('materialAndGroup', function (Blueprint $table) {
             $table->id();
-            $table->integer('materialGroupId')->comment('物料群組id');
+            $table->integer('groupId')->comment('物料群組id');
             $table->integer('skuId')->comment('物料sku表id');
             $table->integer('amount')->default(0)->comment('數量');
             // 聯合id
-            $table->unique(['materialGroupId', 'skuId']);
+            $table->unique(['groupId', 'skuId']);
             $table->timestamps();
         });
 
@@ -42,6 +42,7 @@ return new class extends Migration {
         Schema::create('materialSku', function (Blueprint $table) {
             $table->id();
             $table->string('name')->comment('物料名稱');
+            $table->integer('amount')->default(0)->comment('數量');
             $table->string('json')->nullable()->comment('sku圖片');
             $table->json('skuAttr')->nullable()->comment('sku屬性值');
             $table->integer('spuId')->nullable()->comment('spu id');
@@ -56,7 +57,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('materialGroup');
-        Schema::dropIfExists('mGroupAndM');
+        Schema::dropIfExists('materialAndGroup');
         Schema::dropIfExists('materialSku');
 
     }
