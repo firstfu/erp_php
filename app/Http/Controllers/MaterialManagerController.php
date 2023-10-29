@@ -22,17 +22,7 @@ class MaterialManagerController extends Controller
 {
 
     /**
-     * 新增SKU
-     */
-    public function skuCreate(Request $request)
-    {
-        $data = $request->all();
-        $rs   = MaterialSku::create($data);
-        return response()->json($rs);
-    }
-
-    /**
-     * 新增SKU
+     * 新增物料群組
      */
     public function groupCreate(Request $request)
     {
@@ -43,14 +33,36 @@ class MaterialManagerController extends Controller
 
 
     /**
+     * 新增SKU
+     */
+    public function skuCreate(Request $request)
+    {
+        $data = $request->all();
+        $rs   = MaterialSku::create($data);
+        return response()->json($rs);
+    }
+
+
+
+    /**
      * 新增群組與物料關聯
      */
-    public function groupSkuRelate(Request $request)
+    public function groupAndSkuCreate(Request $request)
     {
 
         $body = \Validator::make($request->all(), [
             'groupId' => 'required|integer|exists:materialGroup,id',
             'skuId'   => 'required|integer|exists:materialSku,id',
+            'amount'  => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    // dump($value);
+                    if ($value <= 1) {
+                        $fail('The ' . $attribute . ' must be greater than 1.');
+                    }
+                }
+            ],
         ], [
             'groupId.required' => 'groupId 字段是必填的。',
             'groupId.integer'  => 'groupId 字段必须是整数。',
@@ -58,6 +70,7 @@ class MaterialManagerController extends Controller
             'skuId.required'   => 'skuId 字段是必填的。',
             'skuId.integer'    => 'skuId 字段必须是整数。',
             'skuId.exists'     => '指定的 skuId 不存在。',
+            'amount.required'  => 'amount 字段是必填的。',
         ]);
         if ($body->fails()) {
             return response()->json($body->errors());
@@ -68,14 +81,14 @@ class MaterialManagerController extends Controller
             ->find($request->groupId)
             ->skus()
             ->attach($request->input('skuId'), [
+                'amount'     => $request->input('amount'),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
 
         // dump($request->all());
-        // dump($rs);
 
-        return response()->json($rs);
+        return response()->json('ok');
     }
 
 
@@ -85,7 +98,7 @@ class MaterialManagerController extends Controller
     /**
      * 查詢列表(群組與物料)
      */
-    public function listGroupAndMaterial(Request $request)
+    public function groupAndSkuList(Request $request)
     {
 
         // $rs = MaterialGroup::query()
@@ -135,6 +148,9 @@ class MaterialManagerController extends Controller
 
 
 
+    /**
+     * 測試用
+     */
     public function test001(Request $request)
     {
 

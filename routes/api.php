@@ -30,14 +30,15 @@ Route::get('/test', function () {
 // 物料管理
 Route::group(['prefix' => 'materialManager'], function () {
 
-    // 新增SKU
-    Route::post('/sku/create', [MaterialManagerController::class, 'skuCreate']);
+
     // 新增物料群組
-    Route::post('/group/create', [MaterialManagerController::class, 'groupCreate']);
+    Route::post('/groupCreate', [MaterialManagerController::class, 'groupCreate']);
+    // 新增SKU
+    Route::post('/skuCreate', [MaterialManagerController::class, 'skuCreate']);
     // 新增群組與物料關聯
-    Route::post('/group/sku/relate', [MaterialManagerController::class, 'groupSkuRelate']);
+    Route::post('/groupAndSkuCreate', [MaterialManagerController::class, 'groupAndSkuCreate']);
     // 查詢列表(群組與物料)
-    Route::post('/list/groupAndMaterial', [MaterialManagerController::class, 'listGroupAndMaterial']);
+    Route::post('/groupAndSkuList', [MaterialManagerController::class, 'groupAndSkuList']);
 
 
     Route::post('/test001', [MaterialManagerController::class, 'test001']);
