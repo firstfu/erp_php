@@ -10,6 +10,7 @@ use DB;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Psy\Exception\ThrowUpException;
 
 
 /**
@@ -172,14 +173,45 @@ class MaterialManagerController extends Controller
             return response()->json($body->errors());
         }
 
-        // 轉移物料與群組關聯
-        // $rs = MaterialGroup::query()
-        //     ->find($request->input('groupId'))
-        //     ->skus()
-        //     ->updateExistingPivot($request->input('skuId'), [
-        //         'amount'     => $request->input('amount'),
-        //         'updated_at' => now()
-        //     ]);
+
+        DB::transaction(function () use ($request): void {
+
+            // 轉移物料與群組關聯
+            $findRs = MaterialAndGroup::query()->find($request->input('id'));
+
+            if ($findRs->amount < $request->input('amount')) {
+                throw new \Exception('轉移數量不足');
+            }
+
+
+            $findRs->update([
+                'skuId'  => $request->input('skuId'),
+                'amount' => DB::raw('amount - ' . $request->input('amount')),
+            ]);
+
+            // 判斷轉移去的群組&& sku 是否存在
+            $transferRs = MaterialAndGroup::query()
+                ->where('groupId', $request->input('groupId'))
+                ->where('skuId', $request->input('skuId'))
+                ->first();
+
+            if ($transferRs) {
+                // 更新物料與群組關聯
+                $transferRs->update([
+                    'groupId' => $request->input('groupId'),
+                    'skuId'   => $request->input('skuId'),
+                    'amount'  => DB::raw('amount + ' . $request->input('amount')),
+                ]);
+            } else {
+                // 新增物料與群組關聯
+                MaterialAndGroup::query()->create([
+                    'groupId' => $request->input('groupId'),
+                    'skuId'   => $request->input('skuId'),
+                    'amount'  => $request->input('amount'),
+                ]);
+            }
+
+        });
 
         return 'ok';
     }
@@ -192,18 +224,42 @@ class MaterialManagerController extends Controller
     public function groupAndSkuList(Request $request)
     {
 
+        $body = \Validator::make($request->all(), [
+            'parentId' => 'required|integer|exists:materialGroup,parentId',
+        ], [
+            'parentId.integer' => 'parentId 字段必须是整数。',
+            'parentId.exists'  => '指定的 parentId 不存在。',
+        ]);
+        if ($body->fails()) {
+            return response()->json($body->errors());
+        }
+
+
         $rs = MaterialGroup::query()
             ->with([
                 'children',
                 'skus',
-                'children.skus'
             ])
-            // ->where('parentId', 0)
+            ->where('parentId', $request->input('parentId'))
             ->get();
+
+        // dump($rs);
+
+        $rs2 = MaterialSku::query()
+            ->with(['materialAndGroups'])
+            ->whereHas('materialAndGroups', function (Builder $query) use ($request) {
+                $query->where('amount', '>', 0);
+                $query->where('groupId', '=', $request->input('parentId'));
+            })->get();
+
+        // dump($rs2->toArray());
+
+
+        $rs3 = array_merge($rs->toArray(), $rs2->toArray());
 
 
         // Log::info("測試用", ["rs" => $rs]);
-        return response()->json($rs);
+        return response()->json($rs3);
     }
 
 
@@ -214,13 +270,11 @@ class MaterialManagerController extends Controller
     public function test001(Request $request)
     {
 
-
         $rs = MaterialSku::query()
             ->whereRaw('materialSku.amount != coalesce((select sum(amount) from materialAndGroup where skuId = materialSku.id), 0)')
             ->get();
 
         // dump($rs->toRawSql());
-
 
         return $rs;
 

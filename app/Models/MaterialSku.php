@@ -42,6 +42,11 @@ class MaterialSku extends Model
         return $this->belongsToMany(MaterialGroup::class, 'materialAndGroup', 'skuId', 'groupId');
     }
 
+    public function materialAndGroups()
+    {
+        return $this->hasMany(MaterialAndGroup::class, 'skuId');
+    }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format($this->dateFormat ?: 'Y-m-d H:i:s');
