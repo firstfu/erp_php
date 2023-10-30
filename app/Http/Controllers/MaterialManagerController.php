@@ -137,6 +137,52 @@ class MaterialManagerController extends Controller
     }
 
 
+    // TODO: 轉移物料與群組關聯
+    public function groupAndSkuTransfer(Request $request)
+    {
+
+        $body = \Validator::make($request->all(), [
+            // 物料與群組id
+            'id'      => 'required|integer|exists:materialAndGroup,id',
+            // 轉移sku id
+            'skuId'   => 'required|integer|exists:materialSku,id',
+            // 轉移去的group id
+            'groupId' => 'required|integer',
+            'amount'  => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    if ($value < 1) {
+                        $fail($attribute . '轉移數量必須大於等於1');
+                    }
+                }
+            ],
+        ], [
+            'id.required'      => 'id 字段是必填的。',
+            'id.integer'       => 'id 字段必须是整数。',
+            'id.exists'        => '指定的 id 不存在。',
+            'skuId.required'   => 'skuId 字段是必填的。',
+            'skuId.integer'    => 'skuId 字段必须是整数。',
+            'skuId.exists'     => '指定的 skuId 不存在。',
+            'groupId.required' => 'groupId 字段是必填的。',
+            'groupId.integer'  => 'groupId 字段必须是整数。',
+            'amount.required'  => 'amount 字段是必填的。',
+        ]);
+        if ($body->fails()) {
+            return response()->json($body->errors());
+        }
+
+        // 轉移物料與群組關聯
+        // $rs = MaterialGroup::query()
+        //     ->find($request->input('groupId'))
+        //     ->skus()
+        //     ->updateExistingPivot($request->input('skuId'), [
+        //         'amount'     => $request->input('amount'),
+        //         'updated_at' => now()
+        //     ]);
+
+        return 'ok';
+    }
 
 
 
@@ -146,46 +192,15 @@ class MaterialManagerController extends Controller
     public function groupAndSkuList(Request $request)
     {
 
-        // $rs = MaterialGroup::query()
-        //     ->with(['children', 'skus', 'children.skus'])
-        //     ->where('parentId', 0)
-        //     ->union(
-        //         // DB::table('materialSku')
-        //         //     ->select('id', 'name', DB::raw('0 AS parentId'), 'created_at', 'updated_at')
-
-        //         MaterialSku::query()
-        //             ->select('id', 'name', DB::raw('0 AS parentId'), 'created_at', 'updated_at')
-        //     )
-        //     ->get();
-
-        // $rs2 = DB::table('materialSku')
-        //     ->select('id', 'name', DB::raw('0 AS parentId'), 'created_at', 'updated_at')
-        //     ->get();
-
-
-
-        // ============================
-
-
-        $groupArr = MaterialGroup::query()
+        $rs = MaterialGroup::query()
             ->with([
                 'children',
-                // 'skus',
-                // 'children.skus'
+                'skus',
+                'children.skus'
             ])
-            ->where('parentId', 0)
+            // ->where('parentId', 0)
             ->get();
 
-
-        // $skuArr = DB::table('materialSku')
-        //     ->select('id', 'name', DB::raw('0 AS parentId'), 'created_at', 'updated_at')
-        //     ->get();
-
-
-        // $rs = array_merge($groupArr->toArray(), $skuArr->toArray());
-
-
-        $rs = $groupArr;
 
         // Log::info("測試用", ["rs" => $rs]);
         return response()->json($rs);

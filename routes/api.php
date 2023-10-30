@@ -37,6 +37,9 @@ Route::group(['prefix' => 'materialManager'], function () {
     Route::post('/skuCreate', [MaterialManagerController::class, 'skuCreate']);
     // 新增群組與物料關聯
     Route::post('/groupAndSkuCreate', [MaterialManagerController::class, 'groupAndSkuCreate']);
+    // 轉移物料與群組關聯
+    Route::post('/groupAndSkuTransfer', [MaterialManagerController::class, 'groupAndSkuTransfer']);
+
     // 查詢列表(群組與物料)
     Route::post('/groupAndSkuList', [MaterialManagerController::class, 'groupAndSkuList']);
 
