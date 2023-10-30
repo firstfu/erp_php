@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MaterialAndGroup;
 use App\Models\MaterialGroup;
 use App\Models\MaterialSku;
 use App\Models\MGroupAndM;
@@ -26,6 +27,18 @@ class MaterialManagerController extends Controller
      */
     public function groupCreate(Request $request)
     {
+
+        $body = \Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+        ], [
+            'name.required' => 'name 字段是必填的。',
+            'name.string'   => 'name 字段必须是字符串。',
+            'name.max'      => 'name 字段最大长度是 255。',
+        ]);
+        if ($body->fails()) {
+            return response()->json($body->errors());
+        }
+
         $data = $request->all();
         $rs   = MaterialGroup::create($data);
         return response()->json($rs);
@@ -37,9 +50,38 @@ class MaterialManagerController extends Controller
      */
     public function skuCreate(Request $request)
     {
+        $body = \Validator::make($request->all(), [
+            "groupId" => "integer",
+            'name'    => 'required|string|max:255',
+            'amount'  => 'required|integer',
+        ], [
+            'name.required'   => 'name 字段是必填的。',
+            'name.string'     => 'name 字段必须是字符串。',
+            'name.max'        => 'name 字段最大长度是 255。',
+            'amount.required' => 'amount 字段是必填的。',
+            'amount.integer'  => 'amount 字段必须是整数。',
+            'groupId:integer' => 'groupId 字段必须是整数。',
+        ]);
+        if ($body->fails()) {
+            return response()->json($body->errors());
+        }
+
         $data = $request->all();
-        $rs   = MaterialSku::create($data);
-        return response()->json($rs);
+
+        if (!$request->input('groupId')) {
+            $request->merge(['groupId' => 0]);
+        }
+
+        $rs  = MaterialSku::create($request->all());
+        $rs2 = MaterialAndGroup::create([
+            'groupId' => $request->input('groupId'),
+            'skuId'   => $rs->id,
+            'amount'  => $rs->amount,
+        ]);
+
+        $rs3 = [$rs, $rs2];
+
+        return response()->json($rs3);
     }
 
 
@@ -51,7 +93,7 @@ class MaterialManagerController extends Controller
     {
 
         $body = \Validator::make($request->all(), [
-            'groupId' => 'required|integer|exists:materialGroup,id',
+            'groupId' => 'integer',
             'skuId'   => 'required|integer|exists:materialSku,id',
             'amount'  => [
                 'required',
@@ -64,27 +106,30 @@ class MaterialManagerController extends Controller
                 }
             ],
         ], [
-            'groupId.required' => 'groupId 字段是必填的。',
-            'groupId.integer'  => 'groupId 字段必须是整数。',
-            'groupId.exists'   => '指定的 groupId 不存在。',
-            'skuId.required'   => 'skuId 字段是必填的。',
-            'skuId.integer'    => 'skuId 字段必须是整数。',
-            'skuId.exists'     => '指定的 skuId 不存在。',
-            'amount.required'  => 'amount 字段是必填的。',
+            'groupId.integer' => 'groupId 字段必须是整数。',
+            'skuId.required'  => 'skuId 字段是必填的。',
+            'skuId.integer'   => 'skuId 字段必须是整数。',
+            'skuId.exists'    => '指定的 skuId 不存在。',
+            'amount.required' => 'amount 字段是必填的。',
         ]);
         if ($body->fails()) {
             return response()->json($body->errors());
         }
 
-        // 建立關聯
-        $rs = MaterialGroup::query()
-            ->find($request->groupId)
-            ->skus()
-            ->attach($request->input('skuId'), [
-                'amount'     => $request->input('amount'),
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+
+        if (!$request->input('groupId')) {
+            $request->merge(['groupId' => 0]);
+            MaterialAndGroup::create($request->all());
+        } else {
+            MaterialGroup::query()
+                    ?->find($request->input('groupId'))
+                    ?->skus()
+                    ?->attach($request->input('skuId'), [
+                    'amount'     => $request->input('amount'),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+        }
 
         // dump($request->all());
 
@@ -155,36 +200,11 @@ class MaterialManagerController extends Controller
     {
 
 
-        // $rs = MaterialSku::query()->where(function (Builder $query) {
-
-        //     // $query->selectSub(function ($query) {
-        //     //     $query->from('mGroupAndM')
-        //     //         ->where('skuId', 3)
-        //     //         ->sum('amount');
-        //     // }, 'amount')
-        //     //     ->where('id', 3);
-
-
-        //     $query->from('mGroupAndM')
-        //         ->where('skuId', 3)
-        //         ->sum('amount');
-
-        //     dump($query->toRawSql());
-        //     // $rs = MGroupAndM::query()->where('skuId', 3)->sum('amount');
-        //     // dump($query->id);
-        //     // $query->whereIn('id', [3, 4, 5]);
-
-        // })->get();
-
-
-
-        $rs = MaterialSku::query()->where(function (Builder $query) {
-            $query->select(DB::raw("SUM(amount)"))
-                ->from('mGroupAndM')
-                ->whereColumn('skuId', 'materialSku.id')
-                ->limit(1);
-        }, '<', DB::raw('id'))
+        $rs = MaterialSku::query()
+            ->whereRaw('materialSku.amount != coalesce((select sum(amount) from materialAndGroup where skuId = materialSku.id), 0)')
             ->get();
+
+        // dump($rs->toRawSql());
 
 
         return $rs;

@@ -41,6 +41,7 @@ Route::group(['prefix' => 'materialManager'], function () {
     Route::post('/groupAndSkuList', [MaterialManagerController::class, 'groupAndSkuList']);
 
 
+
     Route::post('/test001', [MaterialManagerController::class, 'test001']);
 });
 
