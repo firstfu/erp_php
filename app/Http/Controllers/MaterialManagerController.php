@@ -138,7 +138,7 @@ class MaterialManagerController extends Controller
     }
 
 
-    // TODO: 轉移物料與群組關聯
+    // 轉移物料與群組關聯
     public function groupAndSkuTransfer(Request $request)
     {
 
